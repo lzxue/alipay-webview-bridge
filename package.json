@@ -1,0 +1,38 @@
+{
+  "name": "alipay-webview-bridge",
+  "version": "1.0.0",
+  "description": "H5 WebView 与支付宝小程序双向通信适配器",
+  "keywords": ["alipay", "miniprogram", "webview", "bridge", "postMessage"],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./h5": {
+      "import": "./dist/h5/index.esm.js",
+      "require": "./dist/h5/index.cjs.js",
+      "types": "./dist/h5/index.d.ts"
+    },
+    "./miniprogram": {
+      "import": "./dist/miniprogram/index.esm.js",
+      "require": "./dist/miniprogram/index.cjs.js",
+      "types": "./dist/miniprogram/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "clean": "rm -rf dist",
+    "dev": "rollup -c rollup.config.mjs --watch",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.18.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.0"
+  }
+}

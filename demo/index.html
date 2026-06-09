@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>H5-SDK Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; padding: 12px; }
+    .header { text-align: center; padding: 16px; background: linear-gradient(135deg, #1677ff, #0958d9); color: #fff; border-radius: 12px; margin-bottom: 12px; }
+    .header h1 { font-size: 18px; margin-bottom: 4px; }
+    .header p { font-size: 12px; opacity: 0.8; }
+    .section { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .section-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 400; }
+    .btn { display: block; width: 100%; padding: 11px; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 8px; }
+    .btn:active { opacity: 0.7; }
+    .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .btn-row .btn { flex: 1; margin-bottom: 0; }
+    .btn-blue { background: #1677ff; color: #fff; }
+    .btn-purple { background: #722ed1; color: #fff; }
+    .btn-cyan { background: #13c2c2; color: #fff; }
+    .btn-pink { background: #eb2f96; color: #fff; }
+    .btn-orange { background: #fa8c16; color: #fff; }
+    .btn-green { background: #52c41a; color: #fff; }
+    .btn-red { background: #f5222d; color: #fff; }
+    .btn-outline { background: #fff; color: #1677ff; border: 1px solid #1677ff; }
+    .input { width: 100%; padding: 9px 12px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 13px; margin-bottom: 8px; outline: none; }
+    .input:focus { border-color: #1677ff; }
+    .status-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fafafa; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-ok { background: #52c41a; }
+    .dot-err { background: #ff4d4f; }
+    .result { margin-top: 8px; padding: 8px; border-radius: 6px; font-size: 12px; word-break: break-all; display: none; }
+    .result-ok { background: #f6ffed; border: 1px solid #b7eb8f; }
+    .result-err { background: #fff2f0; border: 1px solid #ffccc7; }
+    .recv-area { max-height: 200px; overflow-y: auto; }
+    .log-area { background: #1a1a2e; border-radius: 8px; padding: 10px; max-height: 250px; overflow-y: auto; font-family: Menlo, monospace; font-size: 11px; line-height: 1.5; }
+    .log-area:empty::before { content: '暂无日志'; color: #666; }
+    .log-send { color: #69b1ff; }
+    .log-recv { color: #b37feb; }
+    .log-info { color: #95de64; }
+    .log-error { color: #ff7875; }
+    .log-warn { color: #ffc53d; }
+    .log-time { color: #888; margin-right: 4px; }
+    .env-info { font-size: 11px; color: #999; margin-top: 8px; }
+    .sensor-data { margin-top: 6px; font-size: 11px; font-family: monospace; color: #666; max-height: 120px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>H5-SDK 通信 Demo</h1>
+  <p>基于 AlipayBridge SDK · 全能力展示</p>
+</div>
+
+<div class="status-bar">
+  <span class="dot dot-err" id="statusDot"></span>
+  <span id="statusText">检测中...</span>
+</div>
+
+<!-- 授权码 -->
+<div class="section">
+  <div class="section-title">AuthCode <span class="badge" style="background:#e6f4ff;color:#1677ff;">授权</span></div>
+  <div class="btn-row">
+    <button class="btn btn-blue" onclick="callApi('requestAuthCode', 'auth_base')">静默授权</button>
+    <button class="btn btn-purple" onclick="callApi('requestAuthCode', 'auth_user')">用户授权</button>
+  </div>
+  <div class="result" id="authResult"></div>
+</div>
+
+<!-- 定位 -->
+<div class="section">
+  <div class="section-title">定位 <span class="badge" style="background:#e6fffb;color:#13c2c2;">设备</span></div>
+  <div class="btn-row">
+    <button class="btn btn-cyan" onclick="callApi('requestLocation', 0)">经纬度</button>
+    <button class="btn btn-cyan" style="background:#08979c" onclick="callApi('requestLocation', 1)">详细位置</button>
+  </div>
+  <div class="result" id="locationResult"></div>
+</div>
+
+<!-- 震动 -->
+<div class="section">
+  <div class="section-title">震动 <span class="badge" style="background:#fff0f6;color:#eb2f96;">设备</span></div>
+  <div class="btn-row">
+    <button class="btn btn-pink" onclick="callApi('requestVibrate', 'light')">轻</button>
+    <button class="btn btn-pink" style="background:#c41d7f" onclick="callApi('requestVibrate', 'medium')">中</button>
+    <button class="btn btn-pink" style="background:#9e1068" onclick="callApi('requestVibrate', 'heavy')">重</button>
+  </div>
+  <div class="result" id="vibrateResult"></div>
+</div>
+
+<!-- 导航栏 -->
+<div class="section">
+  <div class="section-title">导航栏 <span class="badge" style="background:#fff7e6;color:#fa8c16;">UI</span></div>
+  <input class="input" id="titleInput" value="H5-SDK Demo" placeholder="输入标题..." />
+  <button class="btn btn-orange" onclick="callApi('setNavbar')">设置标题</button>
+  <div class="result" id="navbarResult"></div>
+</div>
+
+<!-- Toast/弹窗 -->
+<div class="section">
+  <div class="section-title">交互反馈 <span class="badge" style="background:#fff7e6;color:#fa8c16;">UI</span></div>
+  <div class="btn-row">
+    <button class="btn btn-orange" onclick="SDK.showToast('操作成功','success').catch(showErr)">Toast</button>
+    <button class="btn btn-orange" style="background:#d48806" onclick="SDK.showLoading('加载中...').catch(showErr)">Loading</button>
+    <button class="btn btn-outline" style="border-color:#fa8c16;color:#fa8c16" onclick="SDK.hideLoading().catch(showErr)">隐藏</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-orange" onclick="SDK.alert('提示','这是一个弹窗').catch(showErr)">Alert</button>
+    <button class="btn btn-orange" style="background:#ad6800" onclick="SDK.confirm('确认','是否继续？').then(function(r){showResult('uiResult',true,JSON.stringify(r))}).catch(showErr)">Confirm</button>
+    <button class="btn btn-orange" style="background:#874d00" onclick="SDK.showActionSheet('选择操作',['选项A','选项B','选项C']).then(function(r){showResult('uiResult',true,JSON.stringify(r))}).catch(showErr)">ActionSheet</button>
+  </div>
+  <div class="result" id="uiResult"></div>
+</div>
+
+<!-- 系统/网络 -->
+<div class="section">
+  <div class="section-title">系统信息 <span class="badge" style="background:#f6ffed;color:#52c41a;">设备</span></div>
+  <div class="btn-row">
+    <button class="btn btn-green" onclick="SDK.getSystemInfo().then(function(r){showResult('sysResult',true,JSON.stringify(r))}).catch(showErr)">系统信息</button>
+    <button class="btn btn-green" style="background:#389e0d" onclick="SDK.getNetworkType().then(function(r){showResult('sysResult',true,JSON.stringify(r))}).catch(showErr)">网络类型</button>
+    <button class="btn btn-green" style="background:#237804" onclick="SDK.getBatteryInfo().then(function(r){showResult('sysResult',true,JSON.stringify(r))}).catch(showErr)">电池</button>
+  </div>
+  <div class="result" id="sysResult"></div>
+</div>
+
+<!-- 存储/剪贴板 -->
+<div class="section">
+  <div class="section-title">存储/剪贴板 <span class="badge" style="background:#e6f4ff;color:#1677ff;">数据</span></div>
+  <div class="btn-row">
+    <button class="btn btn-blue" onclick="SDK.setStorage('test_key','hello_sdk').then(function(){showResult('storageResult',true,'写入成功')}).catch(showErr)">写入存储</button>
+    <button class="btn btn-blue" style="background:#0958d9" onclick="SDK.getStorage('test_key').then(function(r){showResult('storageResult',true,JSON.stringify(r))}).catch(showErr)">读取存储</button>
+    <button class="btn btn-outline" onclick="SDK.removeStorage('test_key').then(function(){showResult('storageResult',true,'已删除')}).catch(showErr)">删除</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-purple" onclick="SDK.setClipboard('Hello SDK!').then(function(){showResult('storageResult',true,'已复制到剪贴板')}).catch(showErr)">复制</button>
+    <button class="btn btn-purple" style="background:#531dab" onclick="SDK.getClipboard().then(function(r){showResult('storageResult',true,JSON.stringify(r))}).catch(showErr)">粘贴</button>
+  </div>
+  <div class="result" id="storageResult"></div>
+</div>
+
+<!-- 扫码/电话/图片 -->
+<div class="section">
+  <div class="section-title">扫码/电话/图片 <span class="badge" style="background:#f6ffed;color:#52c41a;">功能</span></div>
+  <div class="btn-row">
+    <button class="btn btn-green" onclick="SDK.scan().then(function(r){showResult('funcResult',true,JSON.stringify(r))}).catch(showErr)">扫码</button>
+    <button class="btn btn-green" style="background:#389e0d" onclick="SDK.makePhoneCall('10086').catch(showErr)">拨打电话</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-green" style="background:#237804" onclick="SDK.chooseImage(1).then(function(r){showResult('funcResult',true,JSON.stringify(r))}).catch(showErr)">选择图片</button>
+    <button class="btn btn-green" style="background:#135200" onclick="SDK.datePicker('yyyy-MM-dd').then(function(r){showResult('funcResult',true,JSON.stringify(r))}).catch(showErr)">日期选择</button>
+  </div>
+  <div class="result" id="funcResult"></div>
+</div>
+
+<!-- 传感器 -->
+<div class="section">
+  <div class="section-title">传感器 <span class="badge" style="background:#fff0f6;color:#eb2f96;">硬件</span></div>
+  <div class="btn-row">
+    <button class="btn btn-pink" onclick="startSensor('Accelerometer')">加速度计</button>
+    <button class="btn btn-pink" style="background:#c41d7f" onclick="startSensor('Gyroscope')">陀螺仪</button>
+    <button class="btn btn-pink" style="background:#9e1068" onclick="startSensor('Compass')">罗盘</button>
+  </div>
+  <button class="btn btn-outline" style="border-color:#eb2f96;color:#eb2f96" onclick="stopAllSensors()">停止所有传感器</button>
+  <div class="result" id="sensorResult"></div>
+  <div class="sensor-data" id="sensorData"></div>
+</div>
+
+<!-- 蓝牙/WiFi -->
+<div class="section">
+  <div class="section-title">蓝牙/WiFi <span class="badge" style="background:#e6fffb;color:#13c2c2;">连接</span></div>
+  <div class="btn-row">
+    <button class="btn btn-cyan" onclick="SDK.openBluetoothAdapter().then(function(){showResult('btResult',true,'蓝牙已开启')}).catch(showErr)">开启蓝牙</button>
+    <button class="btn btn-cyan" style="background:#08979c" onclick="SDK.getBluetoothAdapterState().then(function(r){showResult('btResult',true,JSON.stringify(r))}).catch(showErr)">蓝牙状态</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-cyan" style="background:#006d75" onclick="SDK.getConnectedWifi().then(function(r){showResult('btResult',true,JSON.stringify(r))}).catch(showErr)">当前WiFi</button>
+    <button class="btn btn-cyan" style="background:#00474f" onclick="SDK.closeBluetoothAdapter().then(function(){showResult('btResult',true,'蓝牙已关闭')}).catch(showErr)">关闭蓝牙</button>
+  </div>
+  <div class="result" id="btResult"></div>
+</div>
+
+<!-- 生物认证/屏幕 -->
+<div class="section">
+  <div class="section-title">认证/屏幕 <span class="badge" style="background:#f9f0ff;color:#722ed1;">安全</span></div>
+  <div class="btn-row">
+    <button class="btn btn-purple" onclick="SDK.checkBioAuthMode().then(function(r){showResult('secResult',true,JSON.stringify(r))}).catch(showErr)">生物认证检测</button>
+    <button class="btn btn-purple" style="background:#531dab" onclick="SDK.startBioAuth('fingerPrint').then(function(r){showResult('secResult',true,JSON.stringify(r))}).catch(showErr)">指纹认证</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-outline" style="border-color:#722ed1;color:#722ed1" onclick="SDK.getScreenBrightness().then(function(r){showResult('secResult',true,JSON.stringify(r))}).catch(showErr)">屏幕亮度</button>
+    <button class="btn btn-outline" style="border-color:#722ed1;color:#722ed1" onclick="SDK.setKeepScreenOn(true).then(function(){showResult('secResult',true,'常亮已开启')}).catch(showErr)">屏幕常亮</button>
+  </div>
+  <div class="result" id="secResult"></div>
+</div>
+
+<!-- 自定义 -->
+<div class="section">
+  <div class="section-title">自定义消息 <span class="badge" style="background:#fafafa;color:#999;">高级</span></div>
+  <input class="input" id="customType" placeholder="消息 type，如 page_title" />
+  <input class="input" id="customParams" placeholder='JSON 参数，如 {"content":"hello"}' />
+  <button class="btn btn-outline" onclick="callApi('sendRaw')">发送</button>
+  <div class="result" id="customResult"></div>
+</div>
+
+<!-- 收到的消息 -->
+<div class="section">
+  <div class="section-title">收到的消息</div>
+  <div class="recv-area" id="recvArea"></div>
+</div>
+
+<!-- 日志 -->
+<div class="section">
+  <div class="section-title">通信日志</div>
+  <div class="log-area" id="logArea"></div>
+  <div style="margin-top:8px">
+    <button class="btn btn-outline" style="width:auto;display:inline-block;padding:6px 12px;font-size:12px" onclick="document.getElementById('logArea').innerHTML=''">清空</button>
+  </div>
+</div>
+
+<div class="env-info" id="envInfo"></div>
+
+<!-- 加载 SDK（JSBridge 由 SDK init() 自动加载） -->
+<script src="../dist/h5/index.umd.js"></script>
+<script>
+  var SDK = window.AlipayBridge;
+  var logArea = document.getElementById('logArea');
+
+  // 工具函数
+  function esc(s) { var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+
+  function showResult(id, ok, text) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'block';
+    el.className = 'result ' + (ok ? 'result-ok' : 'result-err');
+    el.textContent = (ok ? '✓ ' : '✗ ') + text;
+  }
+
+  function showErr(err) {
+    SDK.addLog(SDK.LogLevel.ERROR, err.message || String(err));
+  }
+
+  function showRecv(data) {
+    var area = document.getElementById('recvArea');
+    var div = document.createElement('div');
+    div.style.cssText = 'margin:4px 0;padding:6px;background:#f0f5ff;border-radius:6px;font-size:12px;word-break:break-all;';
+    div.innerHTML = '<b>' + esc(data.type || 'unknown') + '</b>: <pre style="margin:2px 0 0;font-size:11px;white-space:pre-wrap">' + esc(JSON.stringify(data, null, 2)) + '</pre>';
+    area.insertBefore(div, area.firstChild);
+  }
+
+  // 日志监听
+  SDK.addLogListener(function(log) {
+    var item = document.createElement('div');
+    var cls = 'log-info';
+    if (log.level === 'send') cls = 'log-send';
+    else if (log.level === 'recv') cls = 'log-recv';
+    else if (log.level === 'error') cls = 'log-error';
+    else if (log.level === 'warn') cls = 'log-warn';
+    item.className = cls;
+    item.innerHTML = '<span class="log-time">[' + log.time + ']</span>' + esc(log.msg);
+    logArea.appendChild(item);
+    logArea.scrollTop = logArea.scrollHeight;
+  });
+
+  // 监听所有响应
+  function setupResponseListeners() {
+    var types = [
+      'authcode_response', 'location_response', 'vibrate_response',
+      'navbar_response', 'title_response', 'reload_response',
+      'getSystemInfo_response', 'getNetworkType_response', 'getBatteryInfo_response',
+      'scan_response', 'showToast_response', 'alert_response', 'confirm_response',
+      'showLoading_response', 'hideLoading_response', 'showActionSheet_response',
+      'setStorage_response', 'getStorage_response', 'removeStorage_response',
+      'setClipboard_response', 'getClipboard_response',
+      'chooseImage_response', 'makePhoneCall_response', 'datePicker_response',
+      'startAccelerometer_response', 'stopAccelerometer_response',
+      'startGyroscope_response', 'stopGyroscope_response',
+      'startCompass_response', 'stopCompass_response',
+      'openBluetoothAdapter_response', 'closeBluetoothAdapter_response',
+      'getBluetoothAdapterState_response',
+      'getConnectedWifi_response',
+      'checkBioAuthMode_response', 'startBioAuth_response',
+      'getScreenBrightness_response', 'setKeepScreenOn_response',
+      'push'
+    ];
+    types.forEach(function(t) {
+      SDK.on(t, function(data) { showRecv(data); });
+    });
+  }
+
+  // ---- 传感器 ----
+  var sensorRemovers = {};
+
+  function startSensor(name) {
+    var startFn = 'start' + name;
+    var onFn = 'on' + name + 'Change';
+
+    SDK[startFn]('normal')
+      .then(function () { showResult('sensorResult', true, name + ' 已启动'); })
+      .catch(showErr);
+
+    if (!sensorRemovers[name]) {
+      sensorRemovers[name] = SDK[onFn](function (data) {
+        var el = document.getElementById('sensorData');
+        var line = document.createElement('div');
+        line.textContent = name + ': ' + JSON.stringify(data);
+        el.insertBefore(line, el.firstChild);
+        if (el.children.length > 20) el.removeChild(el.lastChild);
+      });
+    }
+  }
+
+  function stopAllSensors() {
+    SDK.stopAccelerometer().catch(function(){});
+    SDK.stopGyroscope().catch(function(){});
+    SDK.stopCompass().catch(function(){});
+    SDK.stopDeviceMotionListening().catch(function(){});
+    Object.keys(sensorRemovers).forEach(function (k) {
+      if (typeof sensorRemovers[k] === 'function') sensorRemovers[k]();
+    });
+    sensorRemovers = {};
+    showResult('sensorResult', true, '所有传感器已停止');
+    document.getElementById('sensorData').innerHTML = '';
+  }
+
+  // API 调用
+  function callApi(action, param) {
+    switch(action) {
+      case 'requestAuthCode':
+        SDK.requestAuthCode(param)
+          .then(function(res) { showResult('authResult', true, 'authCode: ' + (res.authCode || JSON.stringify(res))); })
+          .catch(function(err) { showResult('authResult', false, err.message); });
+        break;
+      case 'requestLocation':
+        SDK.requestLocation(param)
+          .then(function(res) { showResult('locationResult', true, res.longitude + ', ' + res.latitude + (res.city ? ' ' + res.city : '')); })
+          .catch(function(err) { showResult('locationResult', false, err.message); });
+        break;
+      case 'requestVibrate':
+        SDK.requestVibrate(param)
+          .then(function() { showResult('vibrateResult', true, '震动成功'); })
+          .catch(function(err) { showResult('vibrateResult', false, err.message); });
+        break;
+      case 'setNavbar':
+        var title = document.getElementById('titleInput').value.trim();
+        SDK.setNavbar({ title: title })
+          .then(function() { showResult('navbarResult', true, '标题设置成功'); })
+          .catch(function(err) { showResult('navbarResult', false, err.message); });
+        break;
+      case 'sendRaw':
+        var t = document.getElementById('customType').value.trim();
+        if (!t) { showResult('customResult', false, '请输入 type'); return; }
+        var pStr = document.getElementById('customParams').value.trim();
+        var p = {};
+        if (pStr) { try { p = JSON.parse(pStr); } catch(e) { showResult('customResult', false, 'JSON 错误'); return; } }
+        SDK.sendAsync(t, p, { responseType: t.replace(/^request_/, '') + '_response' })
+          .then(function(res) { showResult('customResult', true, JSON.stringify(res)); })
+          .catch(function(err) { showResult('customResult', false, err.message); });
+        break;
+    }
+  }
+
+  // 初始化
+  function pageInit() {
+    var dot = document.getElementById('statusDot');
+    var text = document.getElementById('statusText');
+    document.getElementById('envInfo').textContent = 'UA: ' + navigator.userAgent.substring(0, 80) + '...';
+
+    SDK.init().then(function () {
+      setupResponseListeners();
+
+      if (SDK.isInMiniprogram()) {
+        dot.className = 'dot dot-ok';
+        text.textContent = '已连接小程序环境';
+      } else {
+        dot.className = 'dot dot-err';
+        text.textContent = '非小程序环境（浏览器调试模式）';
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', pageInit);
+</script>
+</body>
+</html>
